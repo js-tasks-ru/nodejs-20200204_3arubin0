@@ -1,6 +1,7 @@
 const url = require('url');
 const http = require('http');
 const path = require('path');
+const fs = require('fs');
 
 const server = new http.Server();
 
@@ -12,6 +13,17 @@ server.on('request', (req, res) => {
   switch (req.method) {
     case 'DELETE':
 
+      if (pathname.indexOf('/') > -1) {
+        res.statusCode = 400;
+      } else if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath, (err) => {
+          console.log(err);
+        })
+        res.statusCode = 200;
+      } else {
+        res.statusCode = 404;
+      }
+      res.end();
       break;
 
     default:

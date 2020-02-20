@@ -3,7 +3,6 @@ const url = require('url');
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const fse = require('fs-extra');
 const LimitSizeStream = require('./LimitSizeStream.js');
 
 const server = new http.Server();
@@ -11,7 +10,6 @@ const server = new http.Server();
 server.on('request', (req, res) => {
   const pathname = url.parse(req.url).pathname.slice(1);
   const filepath = path.join(__dirname, 'files', pathname);
-  const filesFolder = path.resolve(__dirname, '../files');
 
   switch (req.method) {
     case 'POST':
@@ -27,9 +25,7 @@ server.on('request', (req, res) => {
         console.log('Max size of data');
         console.log(writeStream.pending);
         res.statusCode = 413;
-        res.write('');
-        fse.emptyDirSync(filesFolder);
-        res.end('6');
+        res.end('Max size of data');
       });
 
       // Create Write Stream
