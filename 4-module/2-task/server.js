@@ -38,7 +38,6 @@ server.on('request', (req, res) => {
       // Create Write Stream
       const writeStream = fs.createWriteStream(filepath, {highWaterMark: 2048});
       writeStream.once('close', function() {
-        console.log('WriteFile close');
         if (res.statusCode !== 413) {
           res.statusCode = 201;
           res.end();

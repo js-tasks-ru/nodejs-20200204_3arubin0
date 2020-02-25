@@ -18,12 +18,10 @@ server.on('request', (req, res) => {
 
         readStream.on('end', () => {
           res.statusCode = 200;
-          console.log('end');
         });
 
         readStream.once('error', () => {
           res.statusCode = 404;
-          console.log('error');
           res.end();
         });
         break;
