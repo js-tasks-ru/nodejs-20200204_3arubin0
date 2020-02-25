@@ -23,7 +23,7 @@ server.on('request', (req, res) => {
 
         readStream.once('error', () => {
           res.statusCode = 404;
-          console.log('error')
+          console.log('error');
           res.end();
         });
         break;

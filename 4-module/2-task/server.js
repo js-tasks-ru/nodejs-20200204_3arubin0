@@ -1,4 +1,3 @@
-const {finished} = require('stream');
 const url = require('url');
 const http = require('http');
 const path = require('path');
@@ -13,18 +12,26 @@ server.on('request', (req, res) => {
 
   switch (req.method) {
     case 'POST':
-      if (fs.existsSync(filepath)) {
+      if (pathname.indexOf('/') > -1) {
+        res.statusCode = 400;
+        res.end();
+        break;
+      } else if (fs.existsSync(filepath)) {
         res.statusCode = 409;
         res.end();
         break;
-      }
+      };
+
+      // Subscribw Request Aborted
+      req.once('aborted', function() {
+        fs.unlinkSync(filepath);
+      });
 
       // Create LimitStream
       const limitStream = new LimitSizeStream({limit: 20048});
       limitStream.on('error', function(err) {
-        console.log('Max size of data');
-        console.log(writeStream.pending);
         res.statusCode = 413;
+        fs.unlinkSync(filepath);
         res.end('Max size of data');
       });
 

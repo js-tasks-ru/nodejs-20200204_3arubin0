@@ -18,7 +18,7 @@ server.on('request', (req, res) => {
       } else if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath, (err) => {
           console.log(err);
-        })
+        });
         res.statusCode = 200;
       } else {
         res.statusCode = 404;
