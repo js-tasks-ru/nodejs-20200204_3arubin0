@@ -8,6 +8,12 @@ const subCategorySchema = new mongoose.Schema({
   },
 });
 
+subCategorySchema.set('toJSON', {
+  virtuals: true,
+  versionKey:false,
+  transform: function (doc, ret) {   delete ret._id  }
+});
+
 const categorySchema = new mongoose.Schema({
   title: {
     type: String,
@@ -15,6 +21,12 @@ const categorySchema = new mongoose.Schema({
   },
 
   subcategories: [subCategorySchema],
+});
+
+categorySchema.set('toJSON', {
+  virtuals: true,
+  versionKey:false,
+  transform: function (doc, ret) {   delete ret._id  }
 });
 
 module.exports = connection.model('Category', categorySchema);
