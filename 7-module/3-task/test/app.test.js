@@ -2,16 +2,15 @@ const app = require('../app');
 const connection = require('../libs/connection');
 const User = require('../models/User');
 const Session = require('../models/Session');
-const axios = require('axios');
-const request = axios.create({
-  responseType: 'json',
-  validateStatus: () => true,
+const request = require('request-promise').defaults({
+  resolveWithFullResponse: true,
+  simple: false,
+  json: true,
 });
-
 const expect = require('chai').expect;
 
 describe('7-module-3-task', () => {
-  describe('сессии', function () {
+  describe('сессии', function() {
     let server;
     before((done) => {
       server = app.listen(3000, done);
@@ -41,17 +40,17 @@ describe('7-module-3-task', () => {
 
       const response = await request({
         method: 'post',
-        url: 'http://localhost:3000/api/login',
-        data: userData,
+        uri: 'http://localhost:3000/api/login',
+        body: userData,
       });
 
-      expect(response.data, 'с сервера должен вернуться токен сессии').to.have.property('token');
+      expect(response.body, 'с сервера должен вернуться токен сессии').to.have.property('token');
 
-      const session = await Session.findOne({token: response.data.token});
+      const session = await Session.findOne({token: response.body.token});
 
       expect(session, 'сессия должна быть создана').to.exist;
       expect(session.user.toString(), 'сессия должна быть создана для заданного пользователя')
-        .to.equal(u.id);
+          .to.equal(u.id);
     });
 
     it('авторизационный заголовок должен корректно обрабатываться', async () => {
@@ -68,13 +67,13 @@ describe('7-module-3-task', () => {
 
       const response = await request({
         method: 'get',
-        url: 'http://localhost:3000/api/me',
+        uri: 'http://localhost:3000/api/me',
         headers: {
           'Authorization': 'Bearer token',
         },
       });
 
-      expect(response.data).to.eql({
+      expect(response.body).to.eql({
         email: userData.email,
         displayName: userData.displayName,
       });
@@ -95,7 +94,7 @@ describe('7-module-3-task', () => {
 
       await request({
         method: 'get',
-        url: 'http://localhost:3000/api/me',
+        uri: 'http://localhost:3000/api/me',
         headers: {
           'Authorization': 'Bearer token',
         },
@@ -108,24 +107,24 @@ describe('7-module-3-task', () => {
     it('несуществующий токен должен приводить к ошибке', async () => {
       const response = await request({
         method: 'get',
-        url: 'http://localhost:3000/api/me',
+        uri: 'http://localhost:3000/api/me',
         headers: {
           'Authorization': 'Bearer not_existing_token',
         },
       });
 
-      expect(response.status).to.equal(401);
-      expect(response.data.error).to.equal('Неверный аутентификационный токен');
+      expect(response.statusCode).to.equal(401);
+      expect(response.body.error).to.equal('Неверный аутентификационный токен');
     });
 
     it('незалогиненный пользователь не может сделать запрос на /me', async () => {
       const response = await request({
         method: 'get',
-        url: 'http://localhost:3000/api/me',
+        uri: 'http://localhost:3000/api/me',
       });
 
-      expect(response.status).to.equal(401);
-      expect(response.data.error).to.equal('Пользователь не залогинен');
+      expect(response.statusCode).to.equal(401);
+      expect(response.body.error).to.equal('Пользователь не залогинен');
     });
   });
 });
