@@ -32,7 +32,8 @@ app.use(async (ctx, next) => {
 app.use((ctx, next) => {
   ctx.login = async function(user) {
     const token = uuid();
-
+    const session = new Session({token, lastVisit: new Date(), user});
+    await session.save();
     return token;
   };
 
@@ -44,7 +45,18 @@ const router = new Router({prefix: '/api'});
 router.use(async (ctx, next) => {
   const header = ctx.request.get('Authorization');
   if (!header) return next();
-
+  const token = header.split(' ')[1];
+  if (!token) return next();
+  const session = await Session.findOne({token: token}).populate('user');
+  if (!session) {
+    ctx.status = 401;
+    ctx.body = {error: 'Неверный аутентификационный токен'};
+    return;
+  }
+  session.lastVisit = new Date();
+  session.markModified('lastVisit');
+  await session.save();
+  ctx.user = session.user;
   return next();
 });
 
@@ -53,8 +65,10 @@ router.post('/login', login);
 router.get('/oauth/:provider', oauth);
 router.post('/oauth_callback', handleMongooseValidationError, oauthCallback);
 
+router.use(async (ctx, next) => {
+  return mustBeAuthenticated(ctx, next);
+});
 router.get('/me', me);
-
 app.use(router.routes());
 
 // this for HTML5 history in browser
@@ -63,7 +77,7 @@ const fs = require('fs');
 const index = fs.readFileSync(path.join(__dirname, 'public/index.html'));
 app.use(async (ctx) => {
   if (ctx.url.startsWith('/api') || ctx.method !== 'GET') return;
-  
+
   ctx.set('content-type', 'text/html');
   ctx.body = index;
 });
