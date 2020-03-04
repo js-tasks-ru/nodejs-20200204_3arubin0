@@ -1,9 +1,24 @@
-const mapOrder = require('../mappers/Order');
 const Order = require('../models/Order');
 const sendMail = require('../libs/sendMail');
 
+function mapOrder(order) {
+  return {
+    id: order.id,
+    user: order.user,
+    product: {
+      id: order.product.id,
+      title: order.product.title,
+      images: order.product.images,
+      category: order.product.category,
+      subcategory: order.product.subcategory,
+      price: order.product.price,
+      description: order.description,
+    },
+  };
+}
+
 module.exports.checkout = async function checkout(ctx, next) {
-  if (!ctx.user){
+  if (!ctx.user) {
     ctx.status = 401;
     return;
   }
